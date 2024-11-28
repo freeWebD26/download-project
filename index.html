@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Group Chat</title>
+  <script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #chat-container {
+      display: none;
+    }
+    #messages {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: scroll;
+      margin-bottom: 10px;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .system-message {
+      color: gray;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h1>Group Chat</h1>
+  
+  <div id="join-container">
+    <h2>Join the Chat</h2>
+    <input type="text" id="username" placeholder="Enter your username">
+    <button id="join-button">Join</button>
+  </div>
+
+  <div id="chat-container">
+    <h2>Welcome, <span id="current-username"></span></h2>
+    <div id="messages"></div>
+    <input type="text" id="message-input" placeholder="Enter your message">
+    <button id="send-button">Send</button>
+  </div>
+
+  <script>
+    const socket = io("http://localhost:3002"); // Replace with your WebSocket server URL
+
+    const joinContainer = document.getElementById("join-container");
+    const chatContainer = document.getElementById("chat-container");
+    const usernameInput = document.getElementById("username");
+    const joinButton = document.getElementById("join-button");
+    const messagesDiv = document.getElementById("messages");
+    const messageInput = document.getElementById("message-input");
+    const sendButton = document.getElementById("send-button");
+    const currentUsername = document.getElementById("current-username");
+
+    let username = "";
+
+    // Join chat
+    joinButton.addEventListener("click", () => {
+        username = usernameInput.value.trim();
+        if (username) {
+            socket.emit("setUsername", username); // Notify the server about the username
+            currentUsername.textContent = username;
+            joinContainer.style.display = "none";
+            chatContainer.style.display = "block";
+        }
+    });
+
+
+    // Send message
+    sendButton.addEventListener("click", () => {
+      const message = messageInput.value.trim();
+      if (message) {
+        socket.emit("newMessage", { text: message }); // Send message to server
+        messageInput.value = ""; // Clear input
+      }
+    });
+
+    // Receive messages
+    socket.on("message", (data) => {
+      addMessage(data.sender || "Anonymous", data.text);
+    });
+
+    // Receive system messages
+    socket.on("user-joined", (data) => {
+      addSystemMessage(data.message);
+    });
+
+    socket.on("user-left", (data) => {
+      addSystemMessage(data.message);
+    });
+
+    // Helper functions
+    function addMessage(sender, text) {
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("message");
+      messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom
+    }
+
+    function addSystemMessage(text) {
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("message", "system-message");
+      messageDiv.textContent = text;
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom
+    }
+  </script>
+</body>
+</html>
