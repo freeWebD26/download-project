@@ -19,6 +19,11 @@ export class ReservationsController {
     return this.reservationsService.findAll();
   }
 
+  @Get('/gemini')
+  gemini() {
+    return this.reservationsService.googleGenerative("gemini");
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.reservationsService.findOne(id);
