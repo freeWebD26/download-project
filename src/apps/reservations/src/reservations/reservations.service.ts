@@ -41,7 +41,7 @@ export class ReservationsService {
     // Example:
     // const response = await axios.post('https://api.example.com/generate', { prompt });
     // return response.data.result;
-    const genAI = new GoogleGenerativeAI("AIzaSyD3pPLo9PbLm1tcqXbvZPEmI_NRi3pcji8");
+    const genAI = new GoogleGenerativeAI("");
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     prompt = "Explain how AI works";
     const result = await model.generateContent(prompt);
